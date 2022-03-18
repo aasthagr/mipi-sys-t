@@ -40,6 +40,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "mipi_syst.h"
 #include "mipi_syst/message.h"
+#include <limits.h>
+
+#ifndef WCHAR_MIN
+#define WCHAR_IS_SIGNED CHAR_IS_SIGNED
+#if WCHAR_IS_SIGNED
+#define WINT_TYPE int
+#else /* wchar signed */
+#define WINT_TYPE unsigned int
+#endif /* wchar signed */
+#else /* WCHAR_MIN defined */
+#define WCHAR_IS_SIGNED ((WCHAR_MIN - 0) != 0)
+#if WCHAR_MAX < INT_MAX
+/* Signed or unsigned, it'll be int */
+#define WINT_TYPE int
+#else /* wchar rank vs int */
+#define WINT_TYPE wchar_t
+#endif /* wchar rank vs int */
+#endif /* WCHAR_MIN defined */
 
 #if defined(MIPI_SYST_UNIT_TEST)
 #define ASSERT_CHECK(x) ASSERT_EQ(x, true)
@@ -936,7 +954,7 @@ static int buildPrintfPayload(
 					break;
 				case 'c':
 					if (modifier == MOD_L) {
-					  COPY_ARG32(mipi_syst_u32, wchar_t);
+					  COPY_ARG32(mipi_syst_u32, WINT_TYPE);
 					} else {
 					  COPY_ARG32(mipi_syst_u32, int);
 					}
